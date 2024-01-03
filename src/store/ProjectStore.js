@@ -1,5 +1,6 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import axios from 'axios';
+import { BaseAPIURL } from "../utils/constants";
 
 export class ProjectStore {
     constructor(rootStore) {
@@ -26,28 +27,28 @@ export class ProjectStore {
 
     fetchProjects = async () => {
         this.rootStore.commonStore.setLoader(true);
-        const apiResponse = await axios.get("https://localhost:44346/api/Project/GetAll");
+        const apiResponse = await axios.get(`${BaseAPIURL}/Project/GetAll`);
         this.projects = apiResponse?.data?.data;
         this.rootStore.commonStore.setLoader(false);
     }
 
     fetchProjectById = async (projectId) => {
         this.rootStore.commonStore.setLoader(true);
-        const apiResponse = await axios.get(`https://localhost:44346/api/Project/GetById/${projectId}`);
+        const apiResponse = await axios.get(`${BaseAPIURL}/Project/GetById/${projectId}`);
         this.projectById = apiResponse?.data?.data;
         this.rootStore.commonStore.setLoader(false);
     }
 
     saveProject = async (project) => {
         this.rootStore.commonStore.setLoader(true);
-        const apiResponse = await axios.post("https://localhost:44346/api/Project/Save", project);
+        const apiResponse = await axios.post(`${BaseAPIURL}/Project/Save`, project);
         this.savedProjectId = apiResponse?.data?.data;
         this.rootStore.commonStore.setLoader(false);
     }
 
     deleteProject = async (projectId) => {
         this.rootStore.commonStore.setLoader(true);
-        await axios.delete(`https://localhost:44346/api/Project/Delete/${projectId}`);
+        await axios.delete(`${BaseAPIURL}/Project/Delete/${projectId}`);
         this.rootStore.commonStore.setLoader(false);
     }
 
