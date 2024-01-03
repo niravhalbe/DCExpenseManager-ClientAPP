@@ -3,11 +3,11 @@ import { Button, Container, Row, Form, Col } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../hooks/useStore';
 import { SystemAlert } from '../ui-componants/SystemAlert/SystemAlert';
-import { delay, getToastMessage, handleNullOrUndefined } from '../utils/helperFunctions';
+import { delay, getToastMessage, handleNullOrUndefined, isValidDate } from '../utils/helperFunctions';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SystemToast } from '../ui-componants/SystemToast/SystemToast';
 import { EmployeeGrid } from './Grids/EmployeeGrid';
-import { EmployeeType } from '../utils/constants';
+import DatePicker from "react-datepicker";
 
 export const Employee = observer(() => {
     const { rootStore } = useStore();
@@ -15,7 +15,6 @@ export const Employee = observer(() => {
     const [firstName, setFirstName] = useState("");
     const [middleName, setMiddleName] = useState("");
     const [lastName, setLastName] = useState("");
-    const [dob, setDob] = useState("");
     const [contact, setContact] = useState("");
     const [type, setType] = useState("");
 
@@ -26,8 +25,13 @@ export const Employee = observer(() => {
     const [majorHeading, setMajorHeading] = useState("");
     const [toastBody, setToastBody] = useState("");
     const [employees, setEmployees] = useState([]);
-    const [employeeType, setEmployeeType] = useState([]);
-
+    const types = [
+        { value: 0, label: "Select ..." },
+        { value: 1, label: "Type1" },
+        { value: 2, label: "Type2" },
+        { value: 3, label: "Type3" }
+    ];
+    const [birthDate, setBirthDate] = useState(new Date());
     const navigate = useNavigate();
     const { id: selectedEmployeeId } = useParams();
 
@@ -53,7 +57,7 @@ export const Employee = observer(() => {
             setFirstName(selectedEmployee.firstName);
             setMiddleName(selectedEmployee.middleName);
             setLastName(selectedEmployee.lastName);
-            setDob(selectedEmployee.dob);
+            setBirthDate(new Date(selectedEmployee.dob));
             setContact(selectedEmployee.contact);
             setType(selectedEmployee.type);
             setIsActive(selectedEmployee.isActive);
@@ -84,9 +88,9 @@ export const Employee = observer(() => {
         setFirstName("");
         setMiddleName("");
         setLastName("");
-        setDob("");
+        setBirthDate(new Date());
         setContact("");
-        setType("");
+        setType(0);
         setIsActive(true);
         setHasError(false);
     }
@@ -103,26 +107,52 @@ export const Employee = observer(() => {
         displayToast("delete");
     }
 
-    const saveHandler = async () => {
-        setHasError(false);
+    const isValidData = () => {
         if (handleNullOrUndefined(firstName.trim()) === "") {
-            showError("Name cannot be empty !");
+            showError("First name cannot be empty !");
             return false;
         }
-        const postObject = {
-            EmployeeId: employeeId,
-            FirstName: firstName,
-            MiddleName: middleName,
-            LastName: lastName,
-            DOB: dob,
-            Contact: contact,
-            Type: type,
-            IsActive: isActive
+        if (handleNullOrUndefined(lastName.trim()) === "") {
+            showError("Last name cannot be empty !");
+            return false;
         }
-        await rootStore.employeeStore.saveEmployee(postObject);
-        displayToast(employeeId > 0 ? "update" : "insert");
-        cancelHandler();
-        rootStore.employeeStore.fetchEmployees();
+        if (handleNullOrUndefined(contact.trim()) === "") {
+            showError("Contact cannot be empty !");
+            return false;
+        }
+        if (handleNullOrUndefined(type.trim()) === "") {
+            showError("Select type !");
+            return false;
+        }
+        if (isValidDate(handleNullOrUndefined(birthDate))) {
+            showError("Invalid birth date !");
+            return false;
+        }
+        return true;
+    }
+
+    const saveHandler = async () => {
+        setHasError(false);
+        if (isValidData()) {
+            const postObject = {
+                EmployeeId: employeeId,
+                FirstName: firstName,
+                MiddleName: middleName,
+                LastName: lastName,
+                DOB: birthDate,
+                Contact: contact,
+                Type: type,
+                IsActive: isActive
+            }
+            await rootStore.employeeStore.saveEmployee(postObject);
+            displayToast(employeeId > 0 ? "update" : "insert");
+            cancelHandler();
+            rootStore.employeeStore.fetchEmployees();
+        }
+    }
+
+    const createOption = (item) => {
+        return <option key={item.value} selected={item.value === type} value={item.value}>{item.label}</option>
     }
 
     return (
@@ -177,38 +207,32 @@ export const Employee = observer(() => {
                             </Form.Group>
                         </Col>
                         <Col>
+                            <Form.Group className="mb-4" controlId="type">
+                                <Form.Label>Type <span className='required'>*</span></Form.Label>
+
+                                <Form.Select aria-label="Default select example" onChange={(event) => setType(event.target.value)}>
+                                    {types.map(createOption)}
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+                        <Col>
                             <Form.Group className="mb-4" controlId="dob">
                                 <Form.Label>Date of Birth <span className='required'>*</span></Form.Label>
-                                <Form.Control type="date"
-                                    value={dob}
-                                    onChange={(event) => setDob(event.target.value)} />
+                                <br />
+                                <DatePicker
+                                    dateFormat="MM/dd/yyyy"
+                                    className='form-control'
+                                    showIcon
+                                    selected={birthDate}
+                                    onChange={(date) => setBirthDate(date)}
+                                />
                             </Form.Group>
+
+
                         </Col>
                     </Row>
                     <Row>
-                        <Col>
-                            <Form.Group className="mb-4" controlId="type">
 
-                                <Form.Check
-                                    inline
-                                    label="Type A"
-                                    name={EmployeeType.TypeA}
-                                    type="radio"
-                                    id={EmployeeType.TypeA} />
-                                <Form.Check
-                                    inline
-                                    label="Type B"
-                                    name={EmployeeType.TypeB}
-                                    type="radio"
-                                    id={EmployeeType.TypeB} />
-                                <Form.Check
-                                    inline
-                                    label="Type C"
-                                    name={EmployeeType.TypeC}
-                                    type="radio"
-                                    id={EmployeeType.TypeC} />
-                            </Form.Group>
-                        </Col>
                         <Col>
                             <Form.Group className="mb-4" controlId="active">
                                 <Form.Check

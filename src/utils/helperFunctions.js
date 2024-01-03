@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export function handleNullOrUndefined(val) {
     let result = false;
     if (val === null || val === undefined) {
@@ -28,4 +30,13 @@ export function getToastMessage(type) {
 export function delay(ms) {
     const DEF_DELAY = 1000;
     return new Promise(resolve => setTimeout(resolve, ms || DEF_DELAY));
+}
+
+export function formatDateAsDDMMYYYY(inputDate) {
+    return moment(inputDate).format("DD/MM/YYYY");
+}
+
+export function isValidDate(date) {
+    var timeStamp = Date.parse(date);
+    return isNaN(timeStamp);
 }

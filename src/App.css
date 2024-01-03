@@ -2,8 +2,12 @@
   background-color: #f4f5f7;
 }
 
-.margin-2 {
+.margin-on-left {
   margin-left: 10px !important;
+}
+
+.align-on-right {
+  text-align: right;
 }
 
 .required {

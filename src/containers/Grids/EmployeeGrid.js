@@ -10,8 +10,33 @@ export const EmployeeGrid = ({ employees, deleteEmployee }) => {
         navigate(`/employee/${employeeId}`, { replace: true });
     }
 
+    const gridHeaderRow = () => {
+        return (
+            <ListGroup.Item key={0}
+                action
+                variant='light'
+            >
+                <Row>
+                    <Col sm={8}>
+                        <h4>Name</h4>
+                    </Col>
+                    <Col sm={2}>
+                        <h4>Contact</h4>
+                    </Col>
+                    <Col sm={1}>
+                        <h4>Status</h4>
+                    </Col>
+                    <Col sm={1} className='align-on-right'>
+                        <h4>Delete</h4>
+                    </Col>
+                </Row>
+            </ListGroup.Item>
+        )
+    }
+
     return (
         <ListGroup varient="flush">
+            {gridHeaderRow()}
             {employees.map(elem => {
                 return (
                     <ListGroup.Item key={elem.employeeId}
@@ -19,23 +44,22 @@ export const EmployeeGrid = ({ employees, deleteEmployee }) => {
                         variant='light'
                     >
                         <Row>
-                            <Col sm={9}>
+                            <Col sm={8}>
                                 <BsFillPencilFill
                                     color='#0d6efd'
                                     title="Edit"
                                     className='select-action'
                                     onClick={() => selectEmployeeHandler(elem.employeeId)}
                                 />
-                                <span className="margin-2">{elem.firstName} {elem.lastName}</span>
+                                <span className="margin-on-left ">{elem.firstName} {elem.lastName}</span>
+                            </Col>
+                            <Col sm={2}>
+                                <span>{elem.contact}</span>
                             </Col>
                             <Col sm={1}>
-                                <span className="margin-2">{elem.contact}</span>
+                                <span >{elem.isActive ? "Active" : "Inactive"}</span>
                             </Col>
-                            <Col sm={1}>
-                                <span>{elem.isActive ? "Active" : "Inactive"}</span>
-                            </Col>
-                            <Col sm={1}>
-
+                            <Col sm={1} className='align-on-right'>
                                 <BsFillXCircleFill color='#0d6efd'
                                     className='select-action tootip-text'
                                     title="Delete"
