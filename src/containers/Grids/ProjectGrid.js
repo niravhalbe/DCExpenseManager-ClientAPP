@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, ListGroup, Col } from 'react-bootstrap';
 import { BsFillPencilFill, BsFillXCircleFill } from "react-icons/bs";
 import { useNavigate } from 'react-router-dom';
+import { formatDateAsMMDDYYYY } from '../../utils/helperFunctions';
 
 export const ProjectGrid = ({ projects, deleteProject }) => {
     const navigate = useNavigate();
@@ -17,8 +18,11 @@ export const ProjectGrid = ({ projects, deleteProject }) => {
                 variant='light'
             >
                 <Row>
-                    <Col sm={10}>
+                    <Col sm={8}>
                         <h4>Name</h4>
+                    </Col>
+                    <Col sm={2}>
+                        <h4>Start Date</h4>
                     </Col>
                     <Col sm={1}>
                         <h4>Status</h4>
@@ -41,7 +45,7 @@ export const ProjectGrid = ({ projects, deleteProject }) => {
                         variant='light'
                     >
                         <Row>
-                            <Col sm={10}>
+                            <Col sm={8}>
                                 <BsFillPencilFill
                                     color='#0d6efd'
                                     title="Edit"
@@ -50,7 +54,9 @@ export const ProjectGrid = ({ projects, deleteProject }) => {
                                 />
                                 <span className="margin-on-left ">{elem.name}</span>
                             </Col>
-
+                            <Col sm={2}>
+                                <span>{formatDateAsMMDDYYYY(elem.startDate)}</span>
+                            </Col>
                             <Col sm={1}>
                                 <span>{elem.isActive ? "Active" : "Inactive"}</span>
                             </Col>

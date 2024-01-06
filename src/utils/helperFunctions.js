@@ -32,9 +32,10 @@ export function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms || DEF_DELAY));
 }
 
-export function formatDateAsDDMMYYYY(inputDate) {
-    return moment(inputDate).format("DD/MM/YYYY");
+export function formatDateAsMMDDYYYY(inputDate) {
+    return moment(inputDate).format("MM/DD/YYYY");
 }
+
 
 export function isValidDate(date) {
     var timeStamp = Date.parse(date);

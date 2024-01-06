@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Row, Form } from 'react-bootstrap';
+import { Button, Container, Row, Form, Col } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../hooks/useStore';
 import { SystemAlert } from '../ui-componants/SystemAlert/SystemAlert';
@@ -113,28 +113,30 @@ export const Customer = observer(() => {
                 />
             </Row>
             <Row>
-                <Form>
-                    <Form.Group className="mb-4" controlId="customer-name">
-                        <Form.Label>Name <span className='required'>*</span></Form.Label>
-                        <Form.Control type="text"
-                            placeholder="Customer..."
-                            value={name}
-                            onChange={(event) => setName(event.target.value)} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="active">
-                        <Form.Check
-                            type="switch"
-                            id="active-switch"
-                            label="Active"
-                            checked={isActive}
-                            onChange={(event) => setIsActive(event.target.checked)} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="customer-name">
-                        {hasError && <SystemAlert variant="danger" message={message} />}
-                        <Button variant="outline-primary" onClick={saveHandler}>Save</Button>{' '}
-                        <Button variant="outline-primary" onClick={cancelHandler}>Cancel</Button>
-                    </Form.Group>
-                </Form>
+                <Col lg={4} md={4}>
+                    <Form>
+                        <Form.Group className="mb-4" controlId="customer-name">
+                            <Form.Label>Name <span className='required'>*</span></Form.Label>
+                            <Form.Control type="text"
+                                placeholder="Customer..."
+                                value={name}
+                                onChange={(event) => setName(event.target.value)} />
+                        </Form.Group>
+                        <Form.Group className="mb-4" controlId="active">
+                            <Form.Check
+                                type="switch"
+                                id="active-switch"
+                                label="Active"
+                                checked={isActive}
+                                onChange={(event) => setIsActive(event.target.checked)} />
+                        </Form.Group>
+                        <Form.Group className="mb-4" controlId="customer-name">
+                            {hasError && <SystemAlert variant="danger" message={message} />}
+                            <Button variant="outline-primary" onClick={saveHandler}>Save</Button>{' '}
+                            <Button variant="outline-primary" onClick={cancelHandler}>Cancel</Button>
+                        </Form.Group>
+                    </Form>
+                </Col>
             </Row>
             <Row>
                 <CustomerGrid customers={customers} deleteCustomer={deleteHandler} />

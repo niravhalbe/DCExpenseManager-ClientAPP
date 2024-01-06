@@ -1,8 +1,11 @@
 import React from "react"
+import { Image } from "react-bootstrap";
+import homeImage from "../static/dc-home.jpg"
 export const Home = () => {
     return (
         <>
-            <h1>DC Home</h1>
+            <h2 className="banner-image">Expense manager</h2>
+
         </>
     );
 }

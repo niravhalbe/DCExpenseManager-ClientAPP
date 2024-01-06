@@ -3,11 +3,11 @@ import { Button, Container, Row, Form, Col } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../hooks/useStore';
 import { SystemAlert } from '../ui-componants/SystemAlert/SystemAlert';
-import { delay, getToastMessage, handleNullOrUndefined, isValidDate } from '../utils/helperFunctions';
+import { delay, getToastMessage, handleNullOrUndefined } from '../utils/helperFunctions';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SystemToast } from '../ui-componants/SystemToast/SystemToast';
 import { EmployeeGrid } from './Grids/EmployeeGrid';
-import DatePicker from "react-datepicker";
+import { EmployeeType } from '../utils/constants';
 
 export const Employee = observer(() => {
     const { rootStore } = useStore();
@@ -17,7 +17,7 @@ export const Employee = observer(() => {
     const [lastName, setLastName] = useState("");
     const [contact, setContact] = useState("");
     const [type, setType] = useState("");
-
+    const [emailId, setEmailId] = useState("");
     const [isActive, setIsActive] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [message, setMessage] = useState("");
@@ -27,11 +27,11 @@ export const Employee = observer(() => {
     const [employees, setEmployees] = useState([]);
     const types = [
         { value: 0, label: "Select ..." },
-        { value: 1, label: "Type1" },
-        { value: 2, label: "Type2" },
-        { value: 3, label: "Type3" }
+        { value: EmployeeType.PM.value, label: EmployeeType.PM.label },
+        { value: EmployeeType.Employee.value, label: EmployeeType.Employee.label },
+        { value: EmployeeType.Contractor.value, label: EmployeeType.Contractor.label }
     ];
-    const [birthDate, setBirthDate] = useState(new Date());
+    //const [birthDate, setBirthDate] = useState(new Date());
     const navigate = useNavigate();
     const { id: selectedEmployeeId } = useParams();
 
@@ -57,9 +57,10 @@ export const Employee = observer(() => {
             setFirstName(selectedEmployee.firstName);
             setMiddleName(selectedEmployee.middleName);
             setLastName(selectedEmployee.lastName);
-            setBirthDate(new Date(selectedEmployee.dob));
+            //setBirthDate(new Date(selectedEmployee.dob));
             setContact(selectedEmployee.contact);
             setType(selectedEmployee.type);
+            setEmailId(selectedEmployee.emailId);
             setIsActive(selectedEmployee.isActive);
         }
     }, [selectedEmployeeId, rootStore.employeeStore.getEmployeeById])
@@ -88,9 +89,10 @@ export const Employee = observer(() => {
         setFirstName("");
         setMiddleName("");
         setLastName("");
-        setBirthDate(new Date());
+        //setBirthDate(new Date());
         setContact("");
         setType(0);
+        setEmailId("");
         setIsActive(true);
         setHasError(false);
     }
@@ -120,14 +122,18 @@ export const Employee = observer(() => {
             showError("Contact cannot be empty !");
             return false;
         }
-        if (handleNullOrUndefined(type.trim()) === "") {
+        if (type === "") {
             showError("Select type !");
             return false;
         }
-        if (isValidDate(handleNullOrUndefined(birthDate))) {
-            showError("Invalid birth date !");
+        if (handleNullOrUndefined(emailId.trim()) === "") {
+            showError("Email Id cannot be empty !");
             return false;
         }
+        // if (isValidDate(handleNullOrUndefined(birthDate))) {
+        //     showError("Invalid birth date !");
+        //     return false;
+        // }
         return true;
     }
 
@@ -139,9 +145,10 @@ export const Employee = observer(() => {
                 FirstName: firstName,
                 MiddleName: middleName,
                 LastName: lastName,
-                DOB: birthDate,
+                //DOB: birthDate,
                 Contact: contact,
                 Type: type,
+                EmailId: emailId,
                 IsActive: isActive
             }
             await rootStore.employeeStore.saveEmployee(postObject);
@@ -209,13 +216,21 @@ export const Employee = observer(() => {
                         <Col>
                             <Form.Group className="mb-4" controlId="type">
                                 <Form.Label>Type <span className='required'>*</span></Form.Label>
-
                                 <Form.Select aria-label="Default select example" onChange={(event) => setType(event.target.value)}>
                                     {types.map(createOption)}
                                 </Form.Select>
                             </Form.Group>
                         </Col>
                         <Col>
+                            <Form.Group className="mb-4" controlId="email">
+                                <Form.Label>Email <span className='required'>*</span></Form.Label>
+                                <Form.Control type="text"
+                                    placeholder="Email..."
+                                    value={emailId}
+                                    onChange={(event) => setEmailId(event.target.value)} />
+                            </Form.Group>
+                        </Col>
+                        {/* <Col>
                             <Form.Group className="mb-4" controlId="dob">
                                 <Form.Label>Date of Birth <span className='required'>*</span></Form.Label>
                                 <br />
@@ -227,9 +242,7 @@ export const Employee = observer(() => {
                                     onChange={(date) => setBirthDate(date)}
                                 />
                             </Form.Group>
-
-
-                        </Col>
+                        </Col> */}
                     </Row>
                     <Row>
 

@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Row, Form } from 'react-bootstrap';
+import { Button, Container, Row, Form, Col } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../hooks/useStore';
 import { SystemAlert } from '../ui-componants/SystemAlert/SystemAlert';
-import { delay, getToastMessage, handleNullOrUndefined } from '../utils/helperFunctions';
+import { delay, getToastMessage, handleNullOrUndefined, isValidDate } from '../utils/helperFunctions';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SystemToast } from '../ui-componants/SystemToast/SystemToast';
 import { ProjectGrid } from './Grids/ProjectGrid';
+import DatePicker from "react-datepicker";
 
 export const Project = observer(() => {
     const { rootStore } = useStore();
     const [projectId, setProjectId] = useState(0);
     const [name, setName] = useState("");
+    const [uniqueNumber, setUniqueNumber] = useState("");
     const [isActive, setIsActive] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [message, setMessage] = useState("");
@@ -19,6 +21,7 @@ export const Project = observer(() => {
     const [majorHeading, setMajorHeading] = useState("");
     const [toastBody, setToastBody] = useState("");
     const [projects, setProjects] = useState([]);
+    const [startDate, setStartDate] = useState(new Date());
 
     const navigate = useNavigate();
     const { id: selectedProjectId } = useParams();
@@ -42,6 +45,8 @@ export const Project = observer(() => {
         if (selectedProject !== null) {
             setProjectId(selectedProject.projectId);
             setName(selectedProject.name);
+            setUniqueNumber(selectedProject.uniqueNumber);
+            setStartDate(new Date(selectedProject.startDate));
             setIsActive(selectedProject.isActive);
         }
     }, [selectedProjectId, rootStore.projectStore.getProjectById])
@@ -68,6 +73,8 @@ export const Project = observer(() => {
     const clearStates = () => {
         setProjectId(0);
         setName("");
+        setUniqueNumber("");
+        setStartDate(new Date());
         setIsActive(true);
         setHasError(false);
     }
@@ -87,13 +94,23 @@ export const Project = observer(() => {
 
     const saveHandler = async () => {
         setHasError(false);
+        if (handleNullOrUndefined(uniqueNumber.trim()) === "") {
+            showError("Unique number cannot be empty !");
+            return false;
+        }
         if (handleNullOrUndefined(name.trim()) === "") {
             showError("Name cannot be empty !");
+            return false;
+        }
+        if (isValidDate(handleNullOrUndefined(startDate))) {
+            showError("Invalid start date !");
             return false;
         }
         const postObject = {
             ProjectId: projectId,
             Name: name,
+            UniqueNumber: uniqueNumber,
+            StartDate: startDate,
             IsActive: isActive
         }
         await rootStore.projectStore.saveProject(postObject);
@@ -114,21 +131,49 @@ export const Project = observer(() => {
             </Row>
             <Row>
                 <Form>
-                    <Form.Group className="mb-4" controlId="project-name">
-                        <Form.Label>Name <span className='required'>*</span></Form.Label>
-                        <Form.Control type="text"
-                            placeholder="Project..."
-                            value={name}
-                            onChange={(event) => setName(event.target.value)} />
-                    </Form.Group>
-                    <Form.Group className="mb-4" controlId="active">
-                        <Form.Check
-                            type="switch"
-                            id="active-switch"
-                            label="Active"
-                            checked={isActive}
-                            onChange={(event) => setIsActive(event.target.checked)} />
-                    </Form.Group>
+                    <Row>
+                        <Col lg={4} md={4}>
+                            <Form.Group className="mb-4" controlId="project-name">
+                                <Form.Label>Name <span className='required'>*</span></Form.Label>
+                                <Form.Control type="text"
+                                    placeholder="Project..."
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)} />
+                            </Form.Group>
+                        </Col>
+                        <Col lg={4} md={4}>
+                            <Form.Group className="mb-2" controlId="project-unique-number">
+                                <Form.Label>Unique number<span className='required'>*</span></Form.Label>
+                                <Form.Control type="text"
+                                    placeholder="Unique number..."
+                                    value={uniqueNumber}
+                                    onChange={(event) => setUniqueNumber(event.target.value)} />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Form.Group className="mb-4" controlId="dob">
+                                <Form.Label>Start date <span className='required'>*</span></Form.Label>
+                                <br />
+                                <DatePicker
+                                    dateFormat="MM/dd/yyyy"
+                                    className='form-control'
+                                    showIcon
+                                    selected={startDate}
+                                    onChange={(date) => setStartDate(date)}
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-4" controlId="active">
+                                <Form.Check
+                                    type="switch"
+                                    id="active-switch"
+                                    label="Active"
+                                    checked={isActive}
+                                    onChange={(event) => setIsActive(event.target.checked)} />
+                            </Form.Group>
+                        </Col>
+                    </Row>
                     <Form.Group className="mb-4" controlId="project-name">
                         {hasError && <SystemAlert variant="danger" message={message} />}
                         <Button variant="outline-primary" onClick={saveHandler}>Save</Button>{' '}

@@ -8,7 +8,7 @@ import { Project } from './Project';
 import { Error } from './Error';
 import { Customer } from './Customer';
 import { Employee } from './Employee';
-
+import { Mapping } from './Mapping';
 
 export const Navigation = observer(() => {
     return (
@@ -21,7 +21,7 @@ export const Navigation = observer(() => {
                         <Nav.Link href="/project">Projects</Nav.Link>
                         <Nav.Link href="/customer">Customers</Nav.Link>
                         <Nav.Link href="/employee">Employees</Nav.Link>
-
+                        <Nav.Link href="/mapping">Mapping</Nav.Link>
                     </Nav>
                 </Container>
             </Navbar>
@@ -31,6 +31,7 @@ export const Navigation = observer(() => {
                 <Route path="/project/:id?" element={<Project />} />
                 <Route path="/customer/:id?" element={<Customer />} />
                 <Route path="/employee/:id?" element={<Employee />} />
+                <Route path="/mapping/:id?" element={<Mapping />} />
                 <Route path="*" element={<Error />} />
             </Routes>
             <Loader />

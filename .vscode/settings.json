@@ -1,3 +1,5 @@
 {
-  "appService.zipIgnorePattern": ["node_modules{,/**}", ".vscode{,/**}"]
+  "appService.zipIgnorePattern": ["node_modules{,/**}", ".vscode{,/**}"],
+  "appService.defaultWebAppToDeploy": "/subscriptions/de94a7ee-fc20-4521-9775-6767b4cef768/resourceGroups/RG-DC/providers/Microsoft.Web/sites/dc-expense-manager-client",
+  "appService.deploySubpath": "."
 }
