@@ -206,18 +206,18 @@ export const Mapping = observer(() => {
                 <Form>
                     <Row>
                         <Col>
-                            <Form.Group className="mb-4" controlId="customers">
-                                <Form.Label>Customer <span className='required'>*</span></Form.Label>
-                                <Form.Select aria-label="customers" onChange={(event) => setSelectedCustomer(event.target.value)}>
-                                    {customers.map(createCustomerOption)}
-                                </Form.Select>
-                            </Form.Group>
-                        </Col>
-                        <Col>
                             <Form.Group className="mb-4" controlId="projects">
                                 <Form.Label>Project <span className='required'>*</span></Form.Label>
                                 <Form.Select aria-label="projects" onChange={(event) => setSelectedProject(event.target.value)}>
                                     {projects.map(createProjectOption)}
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+                        <Col>
+                            <Form.Group className="mb-4" controlId="customers">
+                                <Form.Label>Customer <span className='required'>*</span></Form.Label>
+                                <Form.Select aria-label="customers" onChange={(event) => setSelectedCustomer(event.target.value)}>
+                                    {customers.map(createCustomerOption)}
                                 </Form.Select>
                             </Form.Group>
                         </Col>

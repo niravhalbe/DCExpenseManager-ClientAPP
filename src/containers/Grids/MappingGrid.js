@@ -18,10 +18,10 @@ export const MappingGrid = ({ mappings, deleteMapping }) => {
                 variant='light'>
                 <Row>
                     <Col sm={3}>
-                        <h4>Customer</h4>
+                        <h4>Project</h4>
                     </Col>
                     <Col sm={3}>
-                        <h4>Project</h4>
+                        <h4>Customer</h4>
                     </Col>
                     <Col sm={3}>
                         <h4>Employee</h4>
@@ -54,10 +54,10 @@ export const MappingGrid = ({ mappings, deleteMapping }) => {
                                     className='select-action'
                                     onClick={() => selectMappingHandler(elem.mappingId)}
                                 />
-                                <span className="margin-on-left ">{elem.customerName}</span>
+                                <span className="margin-on-left ">{elem.projectName}</span>
                             </Col>
                             <Col sm={3}>
-                                <span>{elem.projectName}</span>
+                                <span>{elem.customerName}</span>
                             </Col>
                             <Col sm={3}>
                                 <span>{elem.employeeName}</span>

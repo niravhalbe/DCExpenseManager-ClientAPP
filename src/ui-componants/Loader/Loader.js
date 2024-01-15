@@ -10,7 +10,6 @@ export const Loader = observer(() => {
 
     useEffect(() => {
         setShowSpinner(rootStore.commonStore.getLoader);
-        console.log("loader", rootStore.commonStore.getLoader);
     }, [rootStore.commonStore.getLoader])
     return (
         <>

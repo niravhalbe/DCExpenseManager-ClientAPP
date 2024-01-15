@@ -20,6 +20,15 @@ export function getToastMessage(type) {
         case "delete":
             message = "Record deleted successfully !";
             break;
+        case "valid-login":
+            message = "Login successful !";
+            break;
+        case "invalid-login":
+            message = "Invalid username or password !";
+            break;
+        case "logout":
+            message = "Logout successful !";
+            break;
         default:
             break;
     }
@@ -40,4 +49,16 @@ export function formatDateAsMMDDYYYY(inputDate) {
 export function isValidDate(date) {
     var timeStamp = Date.parse(date);
     return isNaN(timeStamp);
+}
+
+export function setValueInLocalstorage(value) {
+    localStorage.setItem("userDetails", JSON.stringify(value));
+}
+
+export function getValueFromLocalstorage() {
+    return localStorage.getItem("userDetails");
+}
+
+export function deleteValueFromLocalstorage() {
+    localStorage.removeItem("userDetails");
 }
