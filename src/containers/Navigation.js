@@ -13,6 +13,7 @@ import { Timesheet } from './Timesheet';
 import { getValueFromLocalstorage } from '../utils/helperFunctions';
 import { EmployeeType } from '../utils/constants';
 import { BsXOctagonFill } from 'react-icons/bs';
+import { TimesheetGrid } from './Grids/TimesheetGrid';
 
 
 export const Navigation = observer(({ userLoggedOut }) => {
@@ -23,14 +24,16 @@ export const Navigation = observer(({ userLoggedOut }) => {
         <>
             <Navbar bg="dark" data-bs-theme="dark" className="bg-body-tertiary">
                 <Container>
-                    <Navbar.Brand href="/">Expense Manager</Navbar.Brand>
+                    <Navbar.Brand href="/">DC Automations</Navbar.Brand>
                     <Nav className="me-auto">
                         {isPM && <Nav.Link href="/home">Home</Nav.Link>}
                         {isPM && <Nav.Link href="/project">Projects</Nav.Link>}
                         {isPM && <Nav.Link href="/customer">Customers</Nav.Link>}
                         {isPM && <Nav.Link href="/employee">Employees</Nav.Link>}
                         {isPM && <Nav.Link href="/mapping">Mapping</Nav.Link>}
+                        <Nav.Link href="/my-timesheets">My Timesheets</Nav.Link>
                         <Nav.Link href="/timesheet">Timesheet</Nav.Link>
+
                     </Nav>
 
                     <Navbar.Collapse className="justify-content-end">
@@ -51,7 +54,8 @@ export const Navigation = observer(({ userLoggedOut }) => {
                 {isPM && <Route path="/customer/:id?" element={<Customer />} />}
                 {isPM && <Route path="/employee/:id?" element={<Employee />} />}
                 {isPM && <Route path="/mapping/:id?" element={<Mapping />} />}
-                <Route path="/timesheet/:id?" element={<Timesheet />} />
+                <Route path="/timesheet" element={<Timesheet />} />
+                <Route path="/my-timesheets" element={<TimesheetGrid />} />
                 <Route path="*" element={<Error />} />
             </Routes>
             <Loader />

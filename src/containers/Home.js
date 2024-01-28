@@ -4,8 +4,8 @@ import homeImage from "../static/dc-home.jpg"
 export const Home = () => {
     return (
         <>
-            <h2 className="banner-image">Expense manager</h2>
-
+            <div className="bg"></div>
+            <h1 className="banner-center">Expense Manager</h1>
         </>
     );
 }

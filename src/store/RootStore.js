@@ -5,6 +5,7 @@ import { CommonStore } from "./CommonStore";
 import { CustomerStore } from "./CustomerStore";
 import { EmployeeStore } from "./EmployeeStore";
 import { MappingStore } from "./MappingStore";
+import { TimesheetStore } from "./TimesheetStore";
 
 export class RootStore {
     constructor() {
@@ -13,5 +14,6 @@ export class RootStore {
         this.commonStore = new CommonStore(this);
         this.employeeStore = new EmployeeStore(this);
         this.mappingStore = new MappingStore(this);
+        this.timesheetStore = new TimesheetStore(this)
     }
 }

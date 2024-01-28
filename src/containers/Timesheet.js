@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Row, Form, Col, ListGroup } from 'react-bootstrap';
+import { Button, Container, Row, Form, Col, ListGroup, Modal } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '../hooks/useStore';
 import { SystemAlert } from '../ui-componants/SystemAlert/SystemAlert';
-import { delay, formatDateAsMMDDYYYY, getToastMessage, handleNullOrUndefined, isValidDate } from '../utils/helperFunctions';
+import { delay, formatDateAsMMDDYYYY, formatDateAsYYYYMMDD, getToastMessage, getValueFromLocalstorage, handleNullOrUndefined, isValidDate } from '../utils/helperFunctions';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SystemToast } from '../ui-componants/SystemToast/SystemToast';
 import DatePicker from "react-datepicker";
 import moment from 'moment';
 import { BsFillXCircleFill } from 'react-icons/bs';
+import { EmployeeType } from '../utils/constants';
 
 export const Timesheet = observer(() => {
     const { rootStore } = useStore();
@@ -30,15 +31,28 @@ export const Timesheet = observer(() => {
     const [timesheetArray, setTimesheetArray] = useState([]);
     const [datesArray, setDatesArray] = useState([]);
     const [diffInDays, setDiffInDays] = useState(0);
+    const [loggedInUser, setLoggedInUser] = useState(null);
+    const [displayModal, setDisplayModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState(false);
+    const [displayConfirmationModal, setDisplayConfirmationModal] = useState(false);
+    const [confirmationModalMessage, setConfirmationModalMessage] = useState(false);
+    const [loadClicked, setLoadClicked] = useState(false);
+
     const navigate = useNavigate();
     const { id: selectedMappingId } = useParams();
+    const currentUser = JSON.parse(getValueFromLocalstorage());
 
     useEffect(() => {
-        rootStore.mappingStore.resetMappingById();
-        //rootStore.mappingStore.fetchMappings();
-        rootStore.customerStore.fetchCustomers();
-        rootStore.projectStore.fetchProjects();
-        //rootStore.employeeStore.fetchEmployees();
+        setLoggedInUser(currentUser);
+        const isPM = EmployeeType.PM.value === currentUser.type;
+        if (isPM) {
+            rootStore.customerStore.fetchCustomers();
+            rootStore.projectStore.fetchProjects();
+        }
+        else {
+            rootStore.customerStore.fetchAssignedCustomers(currentUser.userId);
+            rootStore.projectStore.fetchAssignedProjects(currentUser.userId);
+        }
     }, []);
 
     useEffect(() => {
@@ -73,45 +87,20 @@ export const Timesheet = observer(() => {
         setMappings(mappings);
     }, [rootStore.mappingStore.getMappings])
 
-    useEffect(() => {
-        fetchMappingDetailsFromQueryString();
-    }, [selectedMappingId]);
-
-    useEffect(() => {
-        const selectedMapping = rootStore.mappingStore.getMappingById;
-        if (selectedMapping !== null) {
-            setMappingId(selectedMapping.mappingId);
-
-            //customer dd
-            const savedCustomer = customers.find(x => x.customerId === selectedMapping.customerId)
-            if (savedCustomer !== null) { setSelectedCustomer(selectedMapping.customerId) }
-
-            //project dd
-            const savedProject = projects.find(x => x.projectId === selectedMapping.projectId)
-            if (savedProject !== null) { setSelectedProject(selectedMapping.projectId) }
-
-            //employee dd
-            const savedEmployee = employees.find(x => x.employeeId === selectedMapping.employeeId)
-            if (savedEmployee !== null) { setSelectedEmployee(selectedMapping.employeeId) }
-
-            setStartDate(new Date(selectedMapping.startDate));
-            setEndDate(new Date(selectedMapping.endDate))
-        }
-    }, [selectedMappingId,
-        rootStore.mappingStore.getMappingById,
-        customers,
-        projects,
-        employees])
-
-    const fetchMappingDetailsFromQueryString = () => {
-        if (handleNullOrUndefined(selectedMappingId) !== "") {
-            rootStore.mappingStore.fetchMappingById(selectedMappingId);
-        }
-    }
 
     const showError = (message) => {
         setHasError(true);
         setMessage(message);
+    }
+
+    const showModal = (message) => {
+        setDisplayModal(true);
+        setModalMessage(message);
+    }
+
+    const showConfirmationModal = (message) => {
+        setDisplayConfirmationModal(true);
+        setConfirmationModalMessage(message);
     }
 
     const displayToast = async (type) => {
@@ -133,9 +122,7 @@ export const Timesheet = observer(() => {
     }
 
     const cancelHandler = () => {
-        rootStore.mappingStore.resetMappingById();
-        clearStates();
-        navigate("/mapping", { replace: true });
+        navigate("/", { replace: true });
     }
 
     const addNewRow = () => {
@@ -151,18 +138,7 @@ export const Timesheet = observer(() => {
 
     const saveHandler = async () => {
         setHasError(false);
-        if (handleNullOrUndefined(selectedCustomer) === 0) {
-            showError("Select Customer ..");
-            return false;
-        }
-        if (handleNullOrUndefined(selectedProject) === 0) {
-            showError("Select Project ..");
-            return false;
-        }
-        if (handleNullOrUndefined(selectedEmployee) === 0) {
-            showError("Select Employee ..");
-            return false;
-        }
+
         if (isValidDate(handleNullOrUndefined(startDate))) {
             showError("Invalid start date !");
             return false;
@@ -171,19 +147,59 @@ export const Timesheet = observer(() => {
             showError("Invalid end date !");
             return false;
         }
-
-        const postObject = {
-            MappingId: mappingId,
-            ProjectId: selectedProject,
-            EmployeeId: selectedEmployee,
-            CustomerId: selectedCustomer,
-            StartDate: startDate,
-            EndDate: endDate
+        if (validTimesheet()) {
+            showConfirmationModal("Once timesheet data is saved, you wont be able to modify! Proceed ? ")
         }
-        await rootStore.mappingStore.saveMapping(postObject);
-        displayToast(mappingId > 0 ? "update" : "insert");
+    }
+
+    const handleSaveClick = async () => {
+        await saveTimesheet(timesheetArray);
+    }
+
+    const saveTimesheet = async (input) => {
+        await rootStore.timesheetStore.saveTimesheet(input);
+        displayToast("insert");
         cancelHandler();
-        rootStore.mappingStore.fetchMappings();
+    }
+
+    const validTimesheet = () => {
+        let result = true;
+        if (timesheetArray === null || timesheetArray.length === 0) {
+            showModal("Timesheet cannot be empty !");
+            result = false;
+        }
+        if (selectedProject === 0) {
+            showModal("Please select Project !");
+            result = false;
+        }
+        for (var element of timesheetArray) {
+            if (element.customerId === 0) {
+                showModal("Please select Customer!");
+                result = false;
+                break;
+            }
+            if (handleNullOrUndefined(element.op.trim()) === "") {
+                showModal("OP cannot be blank! Please recheck the timesheet data.");
+                result = false;
+                break;
+            }
+            if (element.taskDate === "") {
+                showModal("Please select Date!");
+                result = false;
+                break;
+            }
+            if (element.workHours === 0) {
+                showModal("Work hours cannot be blank! Please recheck the timesheet data.");
+                result = false;
+                break;
+            }
+            if (handleNullOrUndefined(element.taskDescription.trim()) === "") {
+                showModal("Task details cannot be blank! Please recheck the timesheet data.");
+                result = false;
+                break;
+            }
+        };
+        return result;
     }
 
     const createCustomerOption = (item) => {
@@ -199,25 +215,39 @@ export const Timesheet = observer(() => {
     }
 
     const updateTimesheet = (fieldValue, fieldName, rowId) => {
+
         const currentRow = timesheetArray.find(x => x.rowId === rowId);
+        currentRow.projectId = parseInt(selectedProject);
+        currentRow.employeeId = parseInt(loggedInUser.userId);
+        currentRow.startDate = startDate;
+        currentRow.endDate = endDate;
+
         switch (fieldName) {
             case "customer":
-                currentRow.customer = fieldValue;
+                currentRow.customerId = parseInt(fieldValue);
                 break;
             case "op":
                 currentRow.op = fieldValue;
                 break;
             case "task":
-                currentRow.taskDetails = fieldValue;
+                currentRow.taskDescription = fieldValue;
                 break;
             case "date":
-                currentRow.taskDate = new Date(fieldValue);
+                currentRow.taskDate = fieldValue;
                 break;
             case "work-hours":
-                currentRow.workHours = fieldValue;
+                if (!fieldValue.match(/^\d{1,}(\.\d{0,2})?$/)) {
+                    showModal("Only number are allowed upto 2 decimals");
+                    return false;
+                }
+                currentRow.workHours = parseFloat(fieldValue);
                 break;
             case "travel-hours":
-                currentRow.travelHours = fieldValue;
+                if (!fieldValue.match(/^\d{1,}(\.\d{0,2})?$/)) {
+                    showModal("Only number are allowed upto 2 decimals");
+                    return false;
+                }
+                currentRow.travelHours = parseFloat(fieldValue);
                 break;
             default:
                 break;
@@ -308,7 +338,7 @@ export const Timesheet = observer(() => {
                 </Row>
                 <Row>
                     <Col sm={6}>
-                        <Form.Group className="mb-4" controlId="taskDetails">
+                        <Form.Group className="mb-4" controlId="taskDescription">
                             <Form.Control type="text"
                                 placeholder="Task Details..."
                                 onChange={(event) => updateTimesheet(event.target.value, "task", item.rowId)}
@@ -326,7 +356,7 @@ export const Timesheet = observer(() => {
         //populate rows
         datesArray.forEach((element, index) => {
             if (element.value !== 0) {
-                rows.push(getBlankRow(index, element));
+                rows.push(getBlankRow(index));
             }
         });
         setTimesheetArray(rows);
@@ -334,47 +364,46 @@ export const Timesheet = observer(() => {
 
 
     const loadTimesheetDates = () => {
+        setLoadClicked(true);
         const firstDate = moment(startDate);
         const lastDate = moment(endDate);
         const timeSheetDates = [{ value: 0, label: "Select..." }];
         const diffInDays = lastDate.diff(firstDate, "days");
         setDiffInDays(diffInDays);
 
-        let nextDate = moment(startDate).add(1, 'days');
-        timeSheetDates.push({ "value": startDate, "label": formatDateAsMMDDYYYY(startDate) })
-        while (true) {
-            if (nextDate.isSame(lastDate, 'day')) {
-                break;
-            }
-            timeSheetDates.push({ "value": nextDate, "label": formatDateAsMMDDYYYY(nextDate) });
-            nextDate = nextDate.add(1, 'days');
+        if (diffInDays < 0) {
+            showModal("Invalid start / end date !");
+            setLoadClicked(false);
+            return;
         }
-        timeSheetDates.push({ "value": endDate, "label": formatDateAsMMDDYYYY(endDate) })
+
+        let nextDate = moment(startDate).add(1, 'days');
+        timeSheetDates.push({ "value": formatDateAsYYYYMMDD(startDate), "label": formatDateAsMMDDYYYY(startDate) })
+        if (!firstDate.isSame(lastDate, 'day')) {
+            while (true) {
+                if (nextDate.isSame(lastDate, 'day')) {
+                    break;
+                }
+                timeSheetDates.push({ "value": formatDateAsYYYYMMDD(nextDate), "label": formatDateAsMMDDYYYY(nextDate) });
+                nextDate = nextDate.add(1, 'days');
+            }
+            timeSheetDates.push({ "value": formatDateAsYYYYMMDD(endDate), "label": formatDateAsMMDDYYYY(endDate) })
+        }
         setDatesArray(timeSheetDates);
     }
 
-    const getBlankRow = (index, element) => {
-        if (element) {
-            return {
-                "rowId": index,
-                "customer": "",
-                "op": "",
-                "taskDetails": "",
-                "taskDate": new Date(),
-                "workHours": "",
-                "travelHours": "",
-                "mode": "modify"
-            }
-        }
+    const getBlankRow = (index) => {
         return {
             "rowId": index,
-            "customer": "",
+            "customerId": 0,
+            "projectId": 0,
             "op": "",
-            "taskDetails": "",
-            "taskDate": new Date(),
-            "workHours": "",
-            "travelHours": "",
-            "mode": "add"
+            "taskDescription": "",
+            "startDate": "",
+            "endDate": "",
+            "taskDate": "",
+            "workHours": 0,
+            "travelHours": 0
         }
     }
 
@@ -428,7 +457,7 @@ export const Timesheet = observer(() => {
                                 />
                             </Form.Group>
                         </Col>
-                        <Button variant="outline-primary" onClick={loadTimesheetDates}>Load</Button>{' '}
+                        <Button variant="outline-primary" disabled={loadClicked} onClick={loadTimesheetDates}>Load</Button>{' '}
 
                     </Row>
                 </Form>
@@ -443,7 +472,9 @@ export const Timesheet = observer(() => {
                     {timesheetArray.map(createTimeSheetGrid)}
                     <Button
                         variant="outline-primary"
-                        onClick={() => addNewRow()}>
+                        onClick={() => addNewRow()}
+                        disabled={!loadClicked}
+                    >
                         Add
                     </Button>
                 </ListGroup>
@@ -457,6 +488,36 @@ export const Timesheet = observer(() => {
                     <Button variant="outline-primary" onClick={cancelHandler}>Cancel</Button>
                 </Form.Group>
             </Row>
+            <Modal
+                show={displayModal}
+                onHide={() => setDisplayModal(false)}
+                aria-labelledby="example-modal-sizes-title-sm"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title id="example-modal-sizes-title-sm">
+                        Warning !
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{modalMessage}</Modal.Body>
+            </Modal>
+            <Modal
+                show={displayConfirmationModal}
+                onHide={() => setDisplayConfirmationModal(false)}
+                aria-labelledby="example-modal-sizes-title-sm"
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title id="example-modal">
+                        Warning !
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{confirmationModalMessage}</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={handleSaveClick}>
+                        Yes
+                    </Button>
+                    <Button variant="primary" onClick={() => setDisplayConfirmationModal(false)}>No</Button>
+                </Modal.Footer>
+            </Modal>
         </Container >
     );
 });

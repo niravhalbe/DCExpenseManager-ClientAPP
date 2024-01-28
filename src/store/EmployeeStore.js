@@ -1,6 +1,7 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import axios from 'axios';
 import { BaseAPIURL } from "../utils/constants";
+import { getValueFromLocalstorage } from "../utils/helperFunctions";
 
 export class EmployeeStore {
     constructor(rootStore) {
@@ -8,6 +9,7 @@ export class EmployeeStore {
         this.employeeById = null;
         this.employees = [];
         this.savedEmployeeId = 0;
+        this.loggedInUser = JSON.parse(getValueFromLocalstorage());
 
         makeObservable(this, {
             employees: observable,
@@ -41,14 +43,14 @@ export class EmployeeStore {
 
     saveEmployee = async (employee) => {
         this.rootStore.commonStore.setLoader(true);
-        const apiResponse = await axios.post(`${BaseAPIURL}/Employee/Save`, employee);
+        const apiResponse = await axios.post(`${BaseAPIURL}/Employee/Save`, employee, { headers: { userId: this.loggedInUser.userId } });
         this.savedEmployeeId = apiResponse?.data?.data;
         this.rootStore.commonStore.setLoader(false);
     }
 
     deleteEmployee = async (employeeId) => {
         this.rootStore.commonStore.setLoader(true);
-        await axios.delete(`${BaseAPIURL}/Employee/Delete/${employeeId}`);
+        await axios.delete(`${BaseAPIURL}/Employee/Delete/${employeeId}`, { headers: { userId: this.loggedInUser.userId } });
         this.rootStore.commonStore.setLoader(false);
     }
 

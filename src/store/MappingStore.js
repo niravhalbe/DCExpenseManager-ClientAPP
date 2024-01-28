@@ -1,6 +1,7 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import axios from 'axios';
 import { BaseAPIURL } from "../utils/constants";
+import { getValueFromLocalstorage } from "../utils/helperFunctions";
 
 export class MappingStore {
     constructor(rootStore) {
@@ -8,6 +9,7 @@ export class MappingStore {
         this.mappingById = null;
         this.mappings = [];
         this.savedMappingId = 0;
+        this.loggedInUser = JSON.parse(getValueFromLocalstorage());
 
         makeObservable(this, {
             mappings: observable,
@@ -41,14 +43,14 @@ export class MappingStore {
 
     saveMapping = async (mapping) => {
         this.rootStore.commonStore.setLoader(true);
-        const apiResponse = await axios.post(`${BaseAPIURL}/Mapping/Save`, mapping);
+        const apiResponse = await axios.post(`${BaseAPIURL}/Mapping/Save`, mapping, { headers: { userId: this.loggedInUser.userId } });
         this.savedMappingId = apiResponse?.data?.data;
         this.rootStore.commonStore.setLoader(false);
     }
 
     deleteMapping = async (mappingId) => {
         this.rootStore.commonStore.setLoader(true);
-        await axios.delete(`${BaseAPIURL}/Mapping/Delete/${mappingId}`);
+        await axios.delete(`${BaseAPIURL}/Mapping/Delete/${mappingId}`, { headers: { userId: this.loggedInUser.userId } });
         this.rootStore.commonStore.setLoader(false);
     }
 

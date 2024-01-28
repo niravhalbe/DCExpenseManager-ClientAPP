@@ -45,6 +45,10 @@ export function formatDateAsMMDDYYYY(inputDate) {
     return moment(inputDate).format("MM/DD/YYYY");
 }
 
+export function formatDateAsYYYYMMDD(inputDate) {
+    return moment(inputDate).format("YYYY-MM-DD");
+}
+
 
 export function isValidDate(date) {
     var timeStamp = Date.parse(date);

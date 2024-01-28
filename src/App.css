@@ -1,9 +1,22 @@
 body,
 html {
   height: 100%;
-  margin: 0;
 }
-
+.bg {
+  /* background-image: url("https://mdbootstrap.com/img/Photos/Horizontal/Nature/full page/img(20).webp"); */
+  background-image: url(../public/back-drop.jpg);
+  height: 100vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.banner-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-shadow: #888b9e 0 0 10px;
+}
 .back-color {
   background-color: #f4f5f7;
 }
@@ -31,7 +44,9 @@ html {
 .margin-on-left {
   margin-left: 10px !important;
 }
-
+.margin-on-top {
+  margin-top: 10px !important;
+}
 .align-on-right {
   text-align: right;
 }
